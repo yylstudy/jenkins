@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+
+                sh 'mvn -B -DskipTests clean package --settings /home/yyl/yyl/apache-maven-3.6.3/conf/settings.xml'
+                sh 'touch testfile'
+                sh 'echo "hello liyang" > testfile'
+                sh 'echo "BUILD_ID:"${BUILD_ID} -> testfile'
+                echo 'Building..'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing..'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+            }
+        }
+    }
+}

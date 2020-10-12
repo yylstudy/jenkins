@@ -1,0 +1,49 @@
+node{
+    stage("check out"){
+        dir("projecta"){
+            git  credentialsId: 'yyl', url: 'https://github.com/yylstudy/sprint-boot-demo1.git',branch:"${ABRANCHNAME}"
+            sh "mvn clean install"
+        }
+        dir("projectb"){
+            git  credentialsId: 'yyl', url: 'https://github.com/yylstudy/spring-boot-demo2.git',branch:"${BBRANCHNAME}"
+            sh "mvn clean install"
+        }
+
+        sh "rm -rf baseline.yml"
+        sh "echo spec: > baseline.yml"
+        sh "echo '  app1:' >> baseline.yml"
+        sh "echo '    image:' >> baseline.yml"
+        sh "echo '    git_branch': ${ABRANCHNAME} >> baseline.yml"
+        sh "echo '    git commit' >> baseline.yml"
+        sh "echo '  app2:' >> baseline.yml"
+        sh "echo '    image:' >> baseline.yml"
+        sh "echo '    git_branch': ${BBRANCHNAME} >> baseline.yml"
+        sh "echo '    git commit' >> baseline.yml"
+        def sendObject = getChangeString()
+        sh "echo ${sendObject} >> baseline.yml"
+
+    }
+}
+
+@NonCPS
+def getChangeString() {
+ MAX_MSG_LEN = 100
+ def changeString = ""
+ def sendMail="liukang.deme@demo.com,demo.jin@demo.com,"
+ echo "Gathering SCM changes"
+ def changeLogSets = currentBuild.changeSets
+ for (int i = 0; i < changeLogSets.size(); i++) {
+     def entries = changeLogSets[i].items
+     for (int j = 0; j < entries.length; j++) {
+        def entry = entries[j]
+        truncated_msg = entry.msg.take(MAX_MSG_LEN)
+        sendMail = sendMail+"${entry.author}@demo.com,"
+        changeString += "--${truncated_msg}  [${entry.author}]\n"
+     }
+ }
+ if (!changeString) {
+    changeString = " - 无"
+ }
+ return [sendMail,changeString]
+}
+

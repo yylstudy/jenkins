@@ -1,0 +1,30 @@
+node{
+    stage("check out"){
+        def adir = "projecta"
+        def bdir = "projectb"
+        dir(adir){
+            git  credentialsId: 'yyl', url: 'https://github.com/yylstudy/sprint-boot-demo1.git',branch:"${abranch}"
+            sh "mvn clean install"
+        }
+        dir(bdir){
+            git  credentialsId: 'yyl', url: 'https://github.com/yylstudy/spring-boot-demo2.git',branch:"${bbranch}"
+            sh "mvn clean install"
+        }
+        sh "rm -rf baseline.yml"
+        sh "echo spec: > baseline.yml"
+        sh "echo '  app1:' >> baseline.yml"
+        sh "echo '    image:' >> baseline.yml"
+        sh "echo '    git_branch': ${abranch} >> baseline.yml"
+        def aversion = readFile("${adir}/.git/refs/heads/${abranch}")
+        sh "echo '    git_commit: ${aversion}' >> baseline.yml"
+        sh "echo '  app2:' >> baseline.yml"
+        sh "echo '    image:' >> baseline.yml"
+        sh "echo '    git_branch': ${bbranch} >> baseline.yml"
+        def bversion = readFile("${bdir}/.git/refs/heads/${bbranch}")
+        sh "echo '    git_commit: ${bversion}' >> baseline.yml"
+    }
+}
+
+
+
+
